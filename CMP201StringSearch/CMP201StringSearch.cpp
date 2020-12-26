@@ -115,7 +115,7 @@ std::string GetPattern() {
 	return pattern;
 }
 
-void Search_BoyerMoore(const std::string& text, const std::string& pattern) {
+std::vector<unsigned int> Search_BoyerMoore(const std::string& text, const std::string& pattern) {
 	unsigned int textLength = text.length();
 	unsigned int patternLength = pattern.length();
 	unsigned int patternSkip = patternLength - 1;
@@ -162,6 +162,8 @@ void Search_BoyerMoore(const std::string& text, const std::string& pattern) {
 		// skip i to end of the match
 		i += patternSkip;
 	}
+
+	return indexesFound;
 }
 
 void BoyerMoore() {
@@ -173,10 +175,26 @@ void BoyerMoore() {
 	Clear(MessageType::BoyerMoore);
 	std::cout << "Searching for: " << pattern;
 
-	Search_BoyerMoore(text, pattern);
+	std::vector<unsigned int> indexes = Search_BoyerMoore(text, pattern);
+	if (indexes.empty()) std::cout << pattern << " is not in the given text!\n";
+	else {
 
-	std::string x = "";
-	std::getline(std::cin, x);
+		std::cout << "There ";
+		(indexes.size() == 1) ? std::cout << "was " : std::cout << "were ";
+
+		std::cout << indexes.size() << " matches!";
+		std::string input;
+		do {
+			std::cout << "\nWould you like to see all the matching positions? [y/n]: ";
+			std::getline(std::cin, input);
+		} while (input[0] != 'y' || input[0] != 'n');
+		if (input[0] == 'n') return;
+
+		std::cout << "These are the match positions: ";
+
+		for (unsigned int i; i < indexes.size(); ++i)
+			std::cout << "\n" << i << ") " << indexes[i];
+	}
 }
 
 void Search_RabinKarp(std::string* text, std::string* pattern) {
