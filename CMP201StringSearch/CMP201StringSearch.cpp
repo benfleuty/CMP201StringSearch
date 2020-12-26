@@ -178,7 +178,6 @@ void BoyerMoore() {
 	std::vector<unsigned int> indexes = Search_BoyerMoore(text, pattern);
 	if (indexes.empty()) std::cout << pattern << " is not in the given text!\n";
 	else {
-
 		std::cout << "There ";
 		(indexes.size() == 1) ? std::cout << "was " : std::cout << "were ";
 
@@ -192,7 +191,7 @@ void BoyerMoore() {
 
 		std::cout << "These are the match positions: ";
 
-		for (unsigned int i; i < indexes.size(); ++i)
+		for (unsigned int i = 0; i < indexes.size(); ++i)
 			std::cout << "\n" << i << ") " << indexes[i];
 	}
 }
