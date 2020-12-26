@@ -1,0 +1,2 @@
+this is some text that needs to be searched by the algorithms Rabin Karp and Boyer Moore.
+lorem ipsum dolor sit amet

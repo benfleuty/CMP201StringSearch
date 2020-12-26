@@ -10,6 +10,9 @@
 #include <math.h>
 #include <vector>
 
+#include "utils.h"
+
+
 /// <summary>
 /// Clear the console - should work on most OS
 /// From https://stackoverflow.com/questions/6486289/how-can-i-clear-console
@@ -72,16 +75,17 @@ void Clear(MessageType message)
 	}
 }
 
-std::string GetFileText(std::string fileToRead) {
+std::string GetFileText(const std::string& fileToRead) {
 	// read text file
 	// file to read from
-	std::ifstream MyFile(fileToRead);
+	std::ifstream file(fileToRead);
 	// temp line storage
 	std::string line;
 	// output text storage
 	std::string output;
 	// loop through each line and append the line to the string
-	while (std::getline(MyFile, line)) output.append(line);
+	while (std::getline(file, line)) output.append(line);
+//	while (file >> line) output.append(line);
 	// return the contents of the file
 	return output;
 }
@@ -93,7 +97,10 @@ std::string GetText() {
 		std::cout << "Enter y when the text you want to search is in a text file named \"search.txt\" in the same folder as this .exe\n";
 		std::getline(std::cin, input);
 	} while (input[0] != 'y');
-	return GetFileText("search.txt");
+	//return GetFileText("search.txt");
+	load_file("search.txt", input);
+	return input;
+
 }
 
 std::string GetPattern() {
@@ -128,7 +135,7 @@ std::vector<unsigned int> Search_BoyerMoore(const std::string& text, const std::
 	{
 		// if the last character in the chunk doesnt match
 		// the last char of the pattern, skip
-		if (text[i + patternLength] != patternLastChar)
+		if (text[i + patternSkip] != patternLastChar)
 		{
 			i += patternSkip;
 			continue;
@@ -194,6 +201,8 @@ void BoyerMoore() {
 		for (unsigned int i = 0; i < indexes.size(); ++i)
 			std::cout << "\n" << i << ") " << indexes[i];
 	}
+
+	std::cin;
 }
 
 void Search_RabinKarp(std::string* text, std::string* pattern) {
@@ -232,11 +241,10 @@ void RabinKarp() {
 int main()
 {
 	Clear(MessageType::Menu);
-	bool quit = false;
-	do {
+	while(true){
 		std::cout << "Select the algorithm to use:\n";
 		std::cout << "1 - Rabin Karp\n";
-		std::cout << "2 - Not implemented\n";
+		std::cout << "2 - Boyer Moore\n";
 		std::cout << "3 - Quit application\n";
 		std::cout << ">";
 		std::string input;
@@ -246,10 +254,11 @@ int main()
 
 		if (in == '1')
 			RabinKarp();
+		else if (in == '2')
+			BoyerMoore();
 		else if (in == '3' || in == 'q' || in == 'Q')
-			quit = true;
+			return 0;
 		else
 			std::cout << "\nInvalid input: '" << input << "'\n";
-	} while (!quit);
-	return 0;
+	}
 }
