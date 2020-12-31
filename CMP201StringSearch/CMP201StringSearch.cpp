@@ -12,7 +12,6 @@
 
 #include "utils.h"
 
-
 /// <summary>
 /// Clear the console - should work on most OS
 /// From https://stackoverflow.com/questions/6486289/how-can-i-clear-console
@@ -85,8 +84,8 @@ std::string GetFileText(const std::string& fileToRead) {
 	std::string output;
 	// loop through each line and append the line to the string
 	while (std::getline(file, line)) output.append(line);
-//	while (file >> line) output.append(line);
-	// return the contents of the file
+	//	while (file >> line) output.append(line);
+		// return the contents of the file
 	return output;
 }
 
@@ -100,7 +99,6 @@ std::string GetText() {
 	//return GetFileText("search.txt");
 	load_file("search.txt", input);
 	return input;
-
 }
 
 std::string GetPattern() {
@@ -122,55 +120,53 @@ std::string GetPattern() {
 	return pattern;
 }
 
-std::vector<unsigned int> Search_BoyerMoore(const std::string& text, const std::string& pattern) {
+std::vector<unsigned long long int> Search_BoyerMoore(const std::string& text, const std::string& pattern) {
 	unsigned int textLength = text.length();
 	unsigned int patternLength = pattern.length();
-	unsigned int patternSkip = patternLength - 1;
-	unsigned int patternLastChar = pattern[patternLength - 1];
-	unsigned int lastPosition = textLength - patternLength;
 
-	std::vector<unsigned int> indexesFound;
+	std::vector<unsigned long long int> matchingIndexes;
 
-	for (size_t i = 0; i < lastPosition; i++)
-	{
-		// if the last character in the chunk doesnt match
-		// the last char of the pattern, skip
-		if (text[i + patternSkip] != patternLastChar)
-		{
-			i += patternSkip;
+	// lookup table to store how many places the given position should skip
+	// ascii extended codes
+	int skip[256];
+
+	// set all points to be max skip value
+	for (int i = 0; i < 256; ++i)
+		skip[i] = patternLength; // Not in the pattern.
+
+	// for each of the characters in the pattern
+	for (int i = 0; i < patternLength; ++i)
+		// set that character to its length from the end of the pattern
+		skip[int(pattern[i])] = (patternLength - 1) - i;
+
+	// iterate through all the text, stopping patternLength positions from the end of the text
+	for (int i = 0; i < textLength - patternLength; ++i) {
+		// check if the last character in the pattern is a match
+		int distance = skip[int(text[i + patternLength - 1])];
+
+		// if no match, skip by distance to the next position
+		if (distance != 0) {
+			i += distance - 1;
 			continue;
 		}
 
-		bool match = false;
+		// there is a match
 
-		// the last character in the chunk matches the
-		// last char of the pattern iterate pattern to
-		// check each char
-		for (size_t j = 0; j < patternLength; j++)
-		{
-			// i    = index of text chunk
-			// j    = index of pattern
-			// i+j  = relative position in the text chunk
+		int j;
 
-			// if the chars don't match
-			if (text[i + j] != pattern[j]) {
-				// stop checking the pattern
-				match = false;
-				break;
-			}
-
-			match = true;
+		// iterate through the text to check each character
+		for (j = 0; j < patternLength; j++) {
+			// if the current char in text being checked doesn't match that point in the pattern
+			if (text[i + j] != pattern[j]) break; // break and move on
 		}
 
-		// if you made it here then the pattern and chunk are a match
-		// add index to list of viable indexes
-		if (match) indexesFound.push_back(i);
-
-		// skip i to end of the match
-		i += patternSkip;
+		// the word in text matches the pattern
+		if (j == patternLength)
+			// add the index of the word to matchingIndexes
+			matchingIndexes.push_back(i);
 	}
 
-	return indexesFound;
+	return matchingIndexes;
 }
 
 void BoyerMoore() {
@@ -182,27 +178,28 @@ void BoyerMoore() {
 	Clear(MessageType::BoyerMoore);
 	std::cout << "Searching for: " << pattern;
 
-	std::vector<unsigned int> indexes = Search_BoyerMoore(text, pattern);
-	if (indexes.empty()) std::cout << pattern << " is not in the given text!\n";
+	std::vector<unsigned long long int> indexes = Search_BoyerMoore(text, pattern);
+	if (indexes.empty()) std::cout << "\r" << pattern << " is not in the given text!\n";
 	else {
-		std::cout << "There ";
-		(indexes.size() == 1) ? std::cout << "was " : std::cout << "were ";
-
-		std::cout << indexes.size() << " matches!";
+		std::cout << "\nThere ";
+		(indexes.size() == 1) ? std::cout << "was 1 match!" : std::cout << "were " << indexes.size() << " matches!";
 		std::string input;
 		do {
 			std::cout << "\nWould you like to see all the matching positions? [y/n]: ";
 			std::getline(std::cin, input);
-		} while (input[0] != 'y' || input[0] != 'n');
-		if (input[0] == 'n') return;
+			if (input[0] == 'n') return;
+		} while (input[0] != 'y');
 
 		std::cout << "These are the match positions: ";
 
 		for (unsigned int i = 0; i < indexes.size(); ++i)
 			std::cout << "\n" << i << ") " << indexes[i];
+
+		std::cout << "\n\n";
 	}
 
-	std::cin;
+	std::cout << "\nPress RETURN to return to the main menu...";
+	std::getline(std::cin, text);
 }
 
 void Search_RabinKarp(std::string* text, std::string* pattern) {
@@ -241,7 +238,7 @@ void RabinKarp() {
 int main()
 {
 	Clear(MessageType::Menu);
-	while(true){
+	while (true) {
 		std::cout << "Select the algorithm to use:\n";
 		std::cout << "1 - Rabin Karp\n";
 		std::cout << "2 - Boyer Moore\n";
@@ -251,6 +248,7 @@ int main()
 		std::getline(std::cin, input);
 
 		char in = input[0];
+		bool clear = true;
 
 		if (in == '1')
 			RabinKarp();
@@ -258,7 +256,10 @@ int main()
 			BoyerMoore();
 		else if (in == '3' || in == 'q' || in == 'Q')
 			return 0;
-		else
+		else {
+			clear = false;
 			std::cout << "\nInvalid input: '" << input << "'\n";
+		}
+		if (clear) Clear(MessageType::Menu);
 	}
 }
