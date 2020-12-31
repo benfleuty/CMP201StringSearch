@@ -93,7 +93,7 @@ std::string GetText() {
 	//// get text file
 	std::string input;
 	do {
-		std::cout << "Enter y when the text you want to search is in a text file named \"search.txt\" in the same folder as this .exe\n";
+		std::cout << "USE ASCII CHARACTERS ONLY\nYOU HAVE BEEN WARNED\nEnter y when the text you want to search is in a text file named \"search.txt\" in the same folder as this .exe\n";
 		std::getline(std::cin, input);
 	} while (input[0] != 'y');
 	//return GetFileText("search.txt");
