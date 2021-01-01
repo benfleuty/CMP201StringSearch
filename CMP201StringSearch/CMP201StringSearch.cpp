@@ -120,29 +120,30 @@ std::string GetPattern() {
 	return pattern;
 }
 
-std::vector<unsigned long long int> Search_BoyerMoore(const std::string& text, const std::string& pattern) {
-	unsigned int textLength = text.length();
-	unsigned int patternLength = pattern.length();
+std::vector<int> Search_BoyerMoore(const std::string& text, const std::string& pattern) {
+	unsigned int textLength = int(text.length());
+	unsigned int patternLength = int(pattern.length());
 
-	std::vector<unsigned long long int> matchingIndexes;
+	std::vector<int> matchingIndexes;
 
 	// lookup table to store how many places the given position should skip
 	// ascii extended codes
-	int skip[256];
+	int skip[256] = {};
 
 	// set all points to be max skip value
-	for (int i = 0; i < 256; ++i)
+	for (unsigned int i = 0; i < 256; ++i)
 		skip[i] = patternLength; // Not in the pattern.
 
 	// for each of the characters in the pattern
-	for (int i = 0; i < patternLength; ++i)
+	for (unsigned int i = 0; i < patternLength; ++i)
 		// set that character to its length from the end of the pattern
 		skip[int(pattern[i])] = (patternLength - 1) - i;
 
 	// iterate through all the text, stopping patternLength positions from the end of the text
-	for (int i = 0; i < textLength - patternLength; ++i) {
+	for (unsigned int i = 0; i < textLength - patternLength; ++i) {
 		// check if the last character in the pattern is a match
-		int distance = skip[int(text[i + patternLength - 1])];
+		int pos = i + patternLength - 1;
+		int distance = skip[int(text[pos])];
 
 		// if no match, skip by distance to the next position
 		if (distance != 0) {
@@ -152,12 +153,13 @@ std::vector<unsigned long long int> Search_BoyerMoore(const std::string& text, c
 
 		// there is a match
 
-		int j;
+		unsigned int j;
 
 		// iterate through the text to check each character
 		for (j = 0; j < patternLength; j++) {
 			// if the current char in text being checked doesn't match that point in the pattern
-			if (text[i + j] != pattern[j]) break; // break and move on
+			int pos = i + j;
+			if (text[pos] != pattern[j]) break; // break and move on
 		}
 
 		// the word in text matches the pattern
@@ -169,6 +171,37 @@ std::vector<unsigned long long int> Search_BoyerMoore(const std::string& text, c
 	return matchingIndexes;
 }
 
+bool ShowMatchingIndexes() {
+	std::string input;
+	do {
+		std::cout << "\nWould you like to see all the matching positions? [y/n]: ";
+		std::getline(std::cin, input);
+		if (input[0] == 'n') return false;
+	} while (input[0] != 'y');
+	return true;
+}
+
+void ShowMatches(std::vector<int> matchingIndexes, std::string& pattern) {
+	if (matchingIndexes.empty()) std::cout << "\r" << pattern << " is not in the given text!\n";
+	else {
+		std::cout << "\nThere ";
+		(matchingIndexes.size() == 1) ? std::cout << "was 1 match!" : std::cout << "were " << matchingIndexes.size() << " matches!";
+		if (!ShowMatchingIndexes()) return;
+
+		std::cout << "These are the match positions: ";
+
+		for (unsigned int i = 0; i < matchingIndexes.size(); ++i)
+			std::cout << "\n" << i << ") " << matchingIndexes[i];
+
+		std::cout << "\n\n";
+	}
+}
+
+void EndOfAlgorithm() {
+	std::cout << "\nPress RETURN to return to the main menu...";
+	auto _ignore = getchar();
+}
+
 void BoyerMoore() {
 	Clear(MessageType::BoyerMoore);
 	// text to search
@@ -178,43 +211,101 @@ void BoyerMoore() {
 	Clear(MessageType::BoyerMoore);
 	std::cout << "Searching for: " << pattern;
 
-	std::vector<unsigned long long int> indexes = Search_BoyerMoore(text, pattern);
-	if (indexes.empty()) std::cout << "\r" << pattern << " is not in the given text!\n";
-	else {
-		std::cout << "\nThere ";
-		(indexes.size() == 1) ? std::cout << "was 1 match!" : std::cout << "were " << indexes.size() << " matches!";
-		std::string input;
-		do {
-			std::cout << "\nWould you like to see all the matching positions? [y/n]: ";
-			std::getline(std::cin, input);
-			if (input[0] == 'n') return;
-		} while (input[0] != 'y');
+	std::vector<int> matchingIndexes = Search_BoyerMoore(text, pattern);
+	ShowMatches(matchingIndexes, pattern);
 
-		std::cout << "These are the match positions: ";
+	EndOfAlgorithm();
+}
 
-		for (unsigned int i = 0; i < indexes.size(); ++i)
-			std::cout << "\n" << i << ") " << indexes[i];
+int GetHashValue(int patternLength, int hashVal, int alphabet, int prime) {
+	for (int i = 0; i < patternLength - 1; ++i)
+		hashVal = (hashVal * alphabet) % prime;
+	return hashVal;
+}
 
-		std::cout << "\n\n";
+int HashText(std::string& text, int& textHash, int patternLength, int alphabet, int prime) {
+	int val = textHash;
+	for (int i = 0; i < patternLength; i++)
+		val = (alphabet * val + text[i]) % prime;
+	return val;
+}
+
+int RollHash(std::string& text, int textHashVal, int hashVal, int i, int patternLength, int alphabet, int prime) {
+	/* Get next hash value of the text we're searching
+	 * Subtract hash value of the first char
+	 * Add value of next char in text
+	 * Divide total by prime number
+	*/
+
+	int pos = i + patternLength;
+	textHashVal = (alphabet * (textHashVal - text[i] * hashVal) + text[pos]) % prime;
+
+	// if textHash is below 0
+	// add prime number to text hash
+
+	if (textHashVal < 0)
+		textHashVal = textHashVal + prime;
+
+	return textHashVal;
+}
+
+std::vector<int> Search_RabinKarp(std::string& text, std::string& pattern) {
+	// vector to hold returnable data
+	std::vector<int> matchingIndexes;
+	// Get lengths
+	int patternLength = pattern.size();
+	int textLength = text.size();
+
+	// Count of possible chars in input
+	const int alphabet = 256;
+	// Hash value of the pattern
+	int patternHashVal = 0;
+	// Hash value of the text
+	int textHashVal = 0;
+	// prime number used to calculate hash
+	const int prime = 17;
+
+	// Calculate the hash value
+	// initialise
+	int hashVal = 1;
+	// get hash value
+	hashVal = GetHashValue(patternLength, hashVal, alphabet, prime);
+
+	// Keep iterators in scope
+	int i, j;
+
+	// Get hash values of the pattern and text
+	patternHashVal = HashText(pattern, patternHashVal, pattern.size(), alphabet, prime);
+	textHashVal = HashText(text, textHashVal, pattern.size(), alphabet, prime);
+
+	// iterate 0 through textlength - pattern length (last possible pos)
+	for (i = 0; i <= textLength - patternLength; ++i) {
+		// if the pattern's hash is the same as the text's hash
+		// then it's likely a match
+		if (patternHashVal == textHashVal) {
+			// iterate each char for the length of the potential match
+			for (j = 0; j < patternLength; j++) {
+				// check each char
+
+				int pos = i + j;
+				if (text[pos] != pattern[j])
+					// break if mismatch
+					break;
+			}
+
+			//  j == patternLength when the two matching hashes have been compared char for char
+			if (j == patternLength)
+				// add the index to the list of matches
+				matchingIndexes.push_back(i);
+		}
+
+		// if i is in range
+		if (i < textLength - patternLength)
+			// roll the hash to the next check
+			textHashVal = RollHash(text, textHashVal, hashVal, i, pattern.size(), alphabet, prime);
 	}
 
-	std::cout << "\nPress RETURN to return to the main menu...";
-	std::getline(std::cin, text);
-}
-
-void Search_RabinKarp(std::string* text, std::string* pattern) {
-	const int textLength = text->length();
-	// bool matchFound[textLength]; define at runtime?
-	// otherwise vector?
-}
-
-unsigned int RollingHash(const std::string& input) {
-	unsigned int total = 0;
-	unsigned int p = input.length() + 1;
-	for (size_t i = 0; i < input.length(); i++)
-		total += input[i] * (int)pow(p, i);
-
-	return total;
+	return matchingIndexes;
 }
 
 void RabinKarp() {
@@ -226,13 +317,11 @@ void RabinKarp() {
 	Clear(MessageType::RabinKarp);
 	std::cout << "Searching for: " << pattern;
 
-	// hash the pattern to compare
-	unsigned int hashedPattern = RollingHash(pattern);
+	std::vector<int> matchingIndexs = Search_RabinKarp(text, pattern);
 
-	std::cout << "\n\n" << hashedPattern << "\n\n";
+	ShowMatches(matchingIndexs, pattern);
 
-	std::string x = "";
-	std::getline(std::cin, x);
+	EndOfAlgorithm();
 }
 
 int main()
