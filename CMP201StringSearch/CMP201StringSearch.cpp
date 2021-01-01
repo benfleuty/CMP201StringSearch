@@ -1,6 +1,3 @@
-// StringSearch.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
 #include <fstream>
 
@@ -9,6 +6,8 @@
 #include <unordered_map>
 #include <math.h>
 #include <vector>
+#include <chrono>
+#include <ctime>
 
 #include "utils.h"
 
@@ -120,7 +119,24 @@ std::string GetPattern() {
 	return pattern;
 }
 
+std::chrono::steady_clock::time_point timerStart;
+std::chrono::steady_clock::time_point timerEnd;
+
+void StartClock() {
+	timerStart = std::chrono::steady_clock::now();
+}
+void StopClock() {
+	timerEnd = std::chrono::steady_clock::now();
+}
+
+void ShowTimeTaken() {
+	std::cout << "\nTime taken: ";
+	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(timerEnd - timerStart).count();
+	std::cout << "ms\n";
+}
+
 std::vector<int> Search_BoyerMoore(const std::string& text, const std::string& pattern) {
+	StartClock();
 	unsigned int textLength = int(text.length());
 	unsigned int patternLength = int(pattern.length());
 
@@ -167,7 +183,7 @@ std::vector<int> Search_BoyerMoore(const std::string& text, const std::string& p
 			// add the index of the word to matchingIndexes
 			matchingIndexes.push_back(i);
 	}
-
+	StopClock();
 	return matchingIndexes;
 }
 
@@ -182,7 +198,8 @@ bool ShowMatchingIndexes() {
 }
 
 void ShowMatches(std::vector<int> matchingIndexes, std::string& pattern) {
-	if (matchingIndexes.empty()) std::cout << "\r" << pattern << " is not in the given text!\n";
+	ShowTimeTaken();
+	if (matchingIndexes.empty()) std::cout << pattern << " is not in the given text!\n";
 	else {
 		std::cout << "\nThere ";
 		(matchingIndexes.size() == 1) ? std::cout << "was 1 match!" : std::cout << "were " << matchingIndexes.size() << " matches!";
@@ -250,6 +267,7 @@ int RollHash(std::string& text, int textHashVal, int hashVal, int i, int pattern
 }
 
 std::vector<int> Search_RabinKarp(std::string& text, std::string& pattern) {
+	StartClock();
 	// vector to hold returnable data
 	std::vector<int> matchingIndexes;
 	// Get lengths
@@ -304,7 +322,7 @@ std::vector<int> Search_RabinKarp(std::string& text, std::string& pattern) {
 			// roll the hash to the next check
 			textHashVal = RollHash(text, textHashVal, hashVal, i, pattern.size(), alphabet, prime);
 	}
-
+	StopClock();
 	return matchingIndexes;
 }
 
