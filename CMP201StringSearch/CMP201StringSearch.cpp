@@ -97,6 +97,7 @@ std::string GetText() {
 		std::getline(std::cin, input);
 	} while (input[0] != 'y');
 	//return GetFileText("search.txt");
+	std::cout << "\nReading file...\n";
 	load_file("search.txt", input);
 	return input;
 }
