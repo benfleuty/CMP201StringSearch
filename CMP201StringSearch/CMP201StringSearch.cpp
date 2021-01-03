@@ -128,7 +128,6 @@ void StartClock() {
 void StopClock() {
 	timerEnd = std::chrono::steady_clock::now();
 }
-
 void ShowTimeTaken() {
 	std::cout << "\nTime taken: ";
 	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(timerEnd - timerStart).count();
