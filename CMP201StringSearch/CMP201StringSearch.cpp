@@ -149,7 +149,8 @@ std::vector<int> Search_BoyerMoore(const std::string& text, const std::string& p
 
 	// set all points to be max skip value
 	for (unsigned int i = 0; i < 256; ++i)
-		skip[i] = patternLength; // Not in the pattern.
+		// Not in the pattern.
+		skip[i] = patternLength;
 
 	// for each of the characters in the pattern
 	for (unsigned int i = 0; i < patternLength; ++i)
