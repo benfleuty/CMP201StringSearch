@@ -48,15 +48,6 @@ void load_file(const string& filename, string& str) {
 	die("Unable to find " + filename);
 }
 
-void load_jute_book(string& str) {
-	// Read the whole file into str.
-	load_file("jute-book.txt", str);
-
-	// Extract only the main text of the book, removing the Project Gutenberg
-	// header/footer and indices.
-	str = str.substr(0x4d7, 0x2550c - 0x4d7);
-}
-
 void show_context(const string& str, Position pos) {
 	const int width = 76;
 	Position left = pos - (width / 2);
