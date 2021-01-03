@@ -248,11 +248,11 @@ int HashText(std::string& text, int& textHash, int patternLength, int alphabet, 
 }
 
 int RollHash(std::string& text, int textHashVal, int hashVal, int i, int patternLength, int alphabet, int prime) {
-	/* Get next hash value of the text we're searching
-	 * Subtract hash value of the first char
-	 * Add value of next char in text
+	/* Get hash value of the next position
+	 * Subtract hash value of text[i]
+	 * Add value of text[i + patlen]
 	 * Divide total by prime number
-	*/
+	 */
 
 	int pos = i + patternLength;
 	textHashVal = (alphabet * (textHashVal - text[i] * hashVal) + text[pos]) % prime;
