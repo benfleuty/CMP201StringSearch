@@ -197,7 +197,7 @@ bool ShowMatchingIndexes() {
 	return true;
 }
 
-void ShowMatches(std::vector<int> matchingIndexes, std::string& pattern) {
+void ShowMatches(std::vector<int> matchingIndexes,std::string& text ,std::string& pattern) {
 	ShowTimeTaken();
 	if (matchingIndexes.empty()) std::cout << pattern << " is not in the given text!\n";
 	else {
@@ -205,12 +205,13 @@ void ShowMatches(std::vector<int> matchingIndexes, std::string& pattern) {
 		(matchingIndexes.size() == 1) ? std::cout << "was 1 match!" : std::cout << "were " << matchingIndexes.size() << " matches!";
 		if (!ShowMatchingIndexes()) return;
 
-		std::cout << "These are the match positions: ";
+		std::cout << "These are the match positions:\n";
 
 		for (unsigned int i = 0; i < matchingIndexes.size(); ++i)
-			std::cout << "\n" << i << ") " << matchingIndexes[i];
+			show_context(text, matchingIndexes[i]);
+			//std::cout << "\n" << i << ") " << matchingIndexes[i];
 
-		std::cout << "\n\n";
+		std::cout << "\n";
 	}
 }
 
@@ -229,7 +230,7 @@ void BoyerMoore() {
 	std::cout << "Searching for: " << pattern;
 
 	std::vector<int> matchingIndexes = Search_BoyerMoore(text, pattern);
-	ShowMatches(matchingIndexes, pattern);
+	ShowMatches(matchingIndexes, text,pattern);
 
 	EndOfAlgorithm();
 }
@@ -337,7 +338,7 @@ void RabinKarp() {
 
 	std::vector<int> matchingIndexs = Search_RabinKarp(text, pattern);
 
-	ShowMatches(matchingIndexs, pattern);
+	ShowMatches(matchingIndexs,text, pattern);
 
 	EndOfAlgorithm();
 }
