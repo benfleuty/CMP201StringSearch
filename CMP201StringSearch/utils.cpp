@@ -79,34 +79,45 @@ void show_context(const string& str, Position pos) {
 	cout << '\n';
 }
 
-std::string get_context(const string& str, Position pos) {
+std::string get_context(const string& str, Position pos, size_t index) {
 	const int width = 76;
 	Position left = pos - (width / 2);
 	Position right = pos + (width / 2);
 	Position len = str.size();
-	string output = "";
+	string output = std::to_string(index) + ") ";
+	string whitespace = " ";
+	string at = "@";
+	string caret = "^";
+
 	for (Position i = left; i < right; ++i) {
 		if (i < 0 || i >= len) {
-			output.append(std::to_string(int(' ')));
+			output.append(whitespace);
 			continue;
 		}
 		char c = str[i];
 		if (c >= 32 && c < 128) {
-			output.append(std::to_string(int(c)));
+			string ch = string(1, c);
+			output.append(ch);
 		}
 		else {
 			// Show control characters as @s.
-			output.append(std::to_string(int('@')));
+			output.append(at);
 		}
 	}
+
+	// caret line
 	output.append("\n");
+
+	// index counter offset
+	for (size_t i = 0; i < std::to_string(index).size() + 2; i++)
+		output.append(whitespace);
+
 	for (Position i = left; i < right; ++i) {
 		if (i < pos) {
-			output.append(std::to_string(int(' ')));
+			output.append(whitespace);
 		}
 		else if (i == pos) {
-			output.append(std::to_string(int('^')));
-			output.append(std::to_string(int(' ')));
+			output.append(caret + whitespace);
 		}
 	}
 	output.append("\n");

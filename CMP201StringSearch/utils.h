@@ -24,6 +24,6 @@ void load_jute_book(std::string& str);
 void show_context(const std::string& str, Position pos);
 
 /** Return the context of the given position as a string. */
-std::string get_context(const std::string& str, Position pos);
+std::string get_context(const std::string& str, Position pos, size_t index);
 
 #endif

@@ -243,7 +243,7 @@ void ShowMatches(std::vector<int> matchingIndexes, std::string& text, std::strin
 		std::string output = "";
 
 		for (unsigned int i = 0; i < matchingIndexes.size(); ++i)
-			output.append(get_context(text, matchingIndexes[i]));
+			output.append(get_context(text, matchingIndexes[i], (i + 1)));
 
 		std::cout << output;
 	}
