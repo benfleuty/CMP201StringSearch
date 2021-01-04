@@ -78,3 +78,37 @@ void show_context(const string& str, Position pos) {
 	}
 	cout << '\n';
 }
+
+std::string get_context(const string& str, Position pos) {
+	const int width = 76;
+	Position left = pos - (width / 2);
+	Position right = pos + (width / 2);
+	Position len = str.size();
+	string output = "";
+	for (Position i = left; i < right; ++i) {
+		if (i < 0 || i >= len) {
+			output.append(std::to_string(int(' ')));
+			continue;
+		}
+		char c = str[i];
+		if (c >= 32 && c < 128) {
+			output.append(std::to_string(int(c)));
+		}
+		else {
+			// Show control characters as @s.
+			output.append(std::to_string(int('@')));
+		}
+	}
+	output.append("\n");
+	for (Position i = left; i < right; ++i) {
+		if (i < pos) {
+			output.append(std::to_string(int(' ')));
+		}
+		else if (i == pos) {
+			output.append(std::to_string(int('^')));
+			output.append(std::to_string(int(' ')));
+		}
+	}
+	output.append("\n");
+	return output;
+}

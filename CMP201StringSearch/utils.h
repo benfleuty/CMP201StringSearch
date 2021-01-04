@@ -23,4 +23,7 @@ void load_jute_book(std::string& str);
 	Control characters (e.g. \n) are shown as @s. */
 void show_context(const std::string& str, Position pos);
 
+/** Return the context of the given position as a string. */
+std::string get_context(const std::string& str, Position pos);
+
 #endif

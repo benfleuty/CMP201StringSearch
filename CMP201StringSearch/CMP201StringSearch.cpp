@@ -168,60 +168,55 @@ void WriteTimeTaken(std::string algo) {
 }
 
 std::vector<int> Search_BoyerMoore(const std::string& text, const std::string& pattern) {
-	for (size_t i = 0; i < 100; i++)
-	{
-		StartClock();
-		unsigned int textLength = int(text.length());
-		unsigned int patternLength = int(pattern.length());
+	StartClock();
+	unsigned int textLength = int(text.length());
+	unsigned int patternLength = int(pattern.length());
 
-		std::vector<int> matchingIndexes;
-
-		// lookup table to store how many places the given position should skip
-		// ascii extended codes
-		int skip[256] = {};
-
-		// set all points to be max skip value
-		for (unsigned int i = 0; i < 256; ++i)
-			// Not in the pattern.
-			skip[i] = patternLength;
-
-		// for each of the characters in the pattern
-		for (unsigned int i = 0; i < patternLength; ++i)
-			// set that character to its length from the end of the pattern
-			skip[int(pattern[i])] = (patternLength - 1) - i;
-
-		// iterate through all the text, stopping patternLength positions from the end of the text
-		for (unsigned int i = 0; i < textLength - patternLength; ++i) {
-			// check if the last character in the pattern is a match
-			int pos = i + patternLength - 1;
-			int distance = skip[int(text[pos])];
-
-			// if no match, skip by distance to the next position
-			if (distance != 0) {
-				i += distance - 1;
-				continue;
-			}
-
-			// there is a match
-
-			unsigned int j;
-
-			// iterate through the text to check each character
-			for (j = 0; j < patternLength; j++) {
-				// if the current char in text being checked doesn't match that point in the pattern
-				int pos = i + j;
-				if (text[pos] != pattern[j]) break; // break and move on
-			}
-
-			// the word in text matches the pattern
-			if (j == patternLength)
-				// add the index of the word to matchingIndexes
-				matchingIndexes.push_back(i);
-		}
-		StopClock();
-	}
 	std::vector<int> matchingIndexes;
 
+	// lookup table to store how many places the given position should skip
+	// ascii extended codes
+	int skip[256] = {};
+
+	// set all points to be max skip value
+	for (unsigned int i = 0; i < 256; ++i)
+		// Not in the pattern.
+		skip[i] = patternLength;
+
+	// for each of the characters in the pattern
+	for (unsigned int i = 0; i < patternLength; ++i)
+		// set that character to its length from the end of the pattern
+		skip[int(pattern[i])] = (patternLength - 1) - i;
+
+	// iterate through all the text, stopping patternLength positions from the end of the text
+	for (unsigned int i = 0; i < textLength - patternLength; ++i) {
+		// check if the last character in the pattern is a match
+		int pos = i + patternLength - 1;
+		int distance = skip[int(text[pos])];
+
+		// if no match, skip by distance to the next position
+		if (distance != 0) {
+			i += distance - 1;
+			continue;
+		}
+
+		// there is a match
+
+		unsigned int j;
+
+		// iterate through the text to check each character
+		for (j = 0; j < patternLength; j++) {
+			// if the current char in text being checked doesn't match that point in the pattern
+			int pos = i + j;
+			if (text[pos] != pattern[j]) break; // break and move on
+		}
+
+		// the word in text matches the pattern
+		if (j == patternLength)
+			// add the index of the word to matchingIndexes
+			matchingIndexes.push_back(i);
+	}
+	StopClock();
 	return matchingIndexes;
 }
 
@@ -245,10 +240,12 @@ void ShowMatches(std::vector<int> matchingIndexes, std::string& text, std::strin
 
 		std::cout << "These are the match positions:\n";
 
-		for (unsigned int i = 0; i < matchingIndexes.size(); ++i)
-			show_context(text, matchingIndexes[i]);
+		std::string output = "";
 
-		std::cout << "\n";
+		for (unsigned int i = 0; i < matchingIndexes.size(); ++i)
+			output.append(get_context(text, matchingIndexes[i]));
+
+		std::cout << output;
 	}
 }
 
@@ -588,7 +585,6 @@ int main()
 
 		char in = input[0];
 		bool clear = true;
-
 		switch (in)
 		{
 		case '1':
@@ -603,7 +599,7 @@ int main()
 		case '4':
 		case 'q':
 		case 'Q':
-			(benchmark) ? benchmarkRK() : RabinKarp();
+			return 0;
 			break;
 		default:
 			clear = false;
