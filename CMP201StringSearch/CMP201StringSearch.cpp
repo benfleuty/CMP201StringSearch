@@ -375,6 +375,101 @@ void RabinKarp() {
 	EndOfAlgorithm();
 }
 
+void benchmarkRK() {
+	// iterate text sample sizes
+	// 2^0 to 2^13 sets of sample text
+	for (size_t fullLoop = 1; fullLoop <= 8192; fullLoop *= 2)
+	{
+		// file to load
+		std::string file = "search.txt";
+		// text to search
+		std::string text;
+		// read once
+		load_file(file, text);
+		// countdown iterator for loop reading
+		int j = fullLoop;
+		// if more than 1 set is to be loaded
+		// loop until 1 is reached
+		while (j > 1) {
+			// append self
+			text.append(text);
+			j /= 2;
+		}
+
+		/* Patterns
+		 * Small:	nec
+		 * Medium:	dolor
+		 * Large:	consectetur
+		 */
+		std::string patterns[] = { "nec","dolor","consectetur" };
+		for (size_t patternLoop = 0; patternLoop < 3; patternLoop++)
+		{
+			std::string pattern = patterns[patternLoop];
+			for (size_t algoLoop = 0; algoLoop < 100; algoLoop++) {
+				std::cout << "Sample Size: " << fullLoop << " | Pattern: " << pattern << " | Iteration: " << algoLoop << " | Time taken: " << std::chrono::duration_cast<std::chrono::microseconds>(timerEnd - timerStart).count() << std::endl;
+				StartClock();
+				// vector to hold returnable data
+				std::vector<int> matchingIndexes;
+				// Get lengths
+				int patternLength = pattern.size();
+				int textLength = text.size();
+
+				// Count of possible chars in input
+				const int alphabet = 256;
+				// Hash value of the pattern
+				int patternHashVal = 0;
+				// Hash value of the text
+				int textHashVal = 0;
+				// prime number used to calculate hash
+				const int prime = 17;
+
+				// Calculate the hash value
+				// initialise
+				int hashVal = 1;
+				// get hash value
+				hashVal = GetHashValue(patternLength, hashVal, alphabet, prime);
+
+				// Keep iterators in scope
+				int i, j;
+
+				// Get hash values of the pattern and text
+				patternHashVal = HashText(pattern, patternHashVal, pattern.size(), alphabet, prime);
+				textHashVal = HashText(text, textHashVal, pattern.size(), alphabet, prime);
+
+				// iterate 0 through textlength - pattern length (last possible pos)
+				for (i = 0; i <= textLength - patternLength; ++i) {
+					// if the pattern's hash is the same as the text's hash
+					// then it's likely a match
+					if (patternHashVal == textHashVal) {
+						// iterate each char for the length of the potential match
+						for (j = 0; j < patternLength; j++) {
+							// check each char
+
+							int pos = i + j;
+							if (text[pos] != pattern[j])
+								// break if mismatch
+								break;
+						}
+
+						//  j == patternLength when the two matching hashes have been compared char for char
+						if (j == patternLength)
+							// add the index to the list of matches
+							matchingIndexes.push_back(i);
+					}
+
+					// if i is in range
+					if (i < textLength - patternLength)
+						// roll the hash to the next check
+						textHashVal = RollHash(text, textHashVal, hashVal, i, pattern.size(), alphabet, prime);
+				}
+				StopClock();
+				StoreTimeTaken(fullLoop, patternLoop, algoLoop);
+				WriteTimeTaken("Rabin-Karp");
+			}
+		}
+	}
+}
+
 void benchmarkBM() {
 	// iterate text sample sizes
 	// 2^0 to 2^13 sets of sample text
@@ -480,7 +575,7 @@ int main()
 		bool clear = true;
 
 		if (in == '1')
-			RabinKarp();
+			benchmarkRK();
 		else if (in == '2')
 			benchmarkBM();
 		else if (in == '3' || in == 'q' || in == 'Q')
