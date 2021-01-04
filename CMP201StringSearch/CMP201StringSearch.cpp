@@ -132,60 +132,91 @@ void StopClock() {
 }
 void ShowTimeTaken() {
 	std::cout << "\nTime taken: ";
-	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(timerEnd - timerStart).count();
+	std::cout << std::chrono::duration_cast<std::chrono::microseconds>(timerEnd - timerStart).count();
 	std::cout << "ms\n";
 }
 
-std::vector<int> Search_BoyerMoore(const std::string& text, const std::string& pattern) {
-	StartClock();
-	unsigned int textLength = int(text.length());
-	unsigned int patternLength = int(pattern.length());
+std::string results = "sample size,pattern size, iteration, time taken\n";
 
+void StoreTimeTaken(int sampleSize, int patternLength, int sampleIteration) {
+	std::string output = std::to_string(sampleSize);
+	switch (patternLength) {
+	case 0:
+		output.append(",3,");
+		break;
+	case 1:
+		output.append(",5,");
+		break;
+	case 2:
+		output.append(",7,");
+		break;
+	}
+	output.append(std::to_string(sampleIteration) + ",");
+	output.append(std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timerEnd - timerStart).count()));
+	results.append(output + "\n");
+}
+void WriteTimeTaken(std::string algo) {
+	std::ofstream f;
+	f.open("benchmark-results-" + algo + ".csv", std::ios_base::binary);
+	f << results;
+	f.close();
+}
+
+std::vector<int> Search_BoyerMoore(const std::string& text, const std::string& pattern) {
+	for (size_t i = 0; i < 100; i++)
+	{
+		StartClock();
+		unsigned int textLength = int(text.length());
+		unsigned int patternLength = int(pattern.length());
+
+		std::vector<int> matchingIndexes;
+
+		// lookup table to store how many places the given position should skip
+		// ascii extended codes
+		int skip[256] = {};
+
+		// set all points to be max skip value
+		for (unsigned int i = 0; i < 256; ++i)
+			// Not in the pattern.
+			skip[i] = patternLength;
+
+		// for each of the characters in the pattern
+		for (unsigned int i = 0; i < patternLength; ++i)
+			// set that character to its length from the end of the pattern
+			skip[int(pattern[i])] = (patternLength - 1) - i;
+
+		// iterate through all the text, stopping patternLength positions from the end of the text
+		for (unsigned int i = 0; i < textLength - patternLength; ++i) {
+			// check if the last character in the pattern is a match
+			int pos = i + patternLength - 1;
+			int distance = skip[int(text[pos])];
+
+			// if no match, skip by distance to the next position
+			if (distance != 0) {
+				i += distance - 1;
+				continue;
+			}
+
+			// there is a match
+
+			unsigned int j;
+
+			// iterate through the text to check each character
+			for (j = 0; j < patternLength; j++) {
+				// if the current char in text being checked doesn't match that point in the pattern
+				int pos = i + j;
+				if (text[pos] != pattern[j]) break; // break and move on
+			}
+
+			// the word in text matches the pattern
+			if (j == patternLength)
+				// add the index of the word to matchingIndexes
+				matchingIndexes.push_back(i);
+		}
+		StopClock();
+	}
 	std::vector<int> matchingIndexes;
 
-	// lookup table to store how many places the given position should skip
-	// ascii extended codes
-	int skip[256] = {};
-
-	// set all points to be max skip value
-	for (unsigned int i = 0; i < 256; ++i)
-		// Not in the pattern.
-		skip[i] = patternLength;
-
-	// for each of the characters in the pattern
-	for (unsigned int i = 0; i < patternLength; ++i)
-		// set that character to its length from the end of the pattern
-		skip[int(pattern[i])] = (patternLength - 1) - i;
-
-	// iterate through all the text, stopping patternLength positions from the end of the text
-	for (unsigned int i = 0; i < textLength - patternLength; ++i) {
-		// check if the last character in the pattern is a match
-		int pos = i + patternLength - 1;
-		int distance = skip[int(text[pos])];
-
-		// if no match, skip by distance to the next position
-		if (distance != 0) {
-			i += distance - 1;
-			continue;
-		}
-
-		// there is a match
-
-		unsigned int j;
-
-		// iterate through the text to check each character
-		for (j = 0; j < patternLength; j++) {
-			// if the current char in text being checked doesn't match that point in the pattern
-			int pos = i + j;
-			if (text[pos] != pattern[j]) break; // break and move on
-		}
-
-		// the word in text matches the pattern
-		if (j == patternLength)
-			// add the index of the word to matchingIndexes
-			matchingIndexes.push_back(i);
-	}
-	StopClock();
 	return matchingIndexes;
 }
 
@@ -344,11 +375,100 @@ void RabinKarp() {
 	EndOfAlgorithm();
 }
 
+void benchmarkBM() {
+	// iterate text sample sizes
+	// 2^0 to 2^13 sets of sample text
+	for (size_t fullLoop = 1; fullLoop <= 8192; fullLoop *= 2)
+	{
+		// file to load
+		std::string file = "search.txt";
+		// text to search
+		std::string text;
+		// read once
+		load_file(file, text);
+		// countdown iterator for loop reading
+		int j = fullLoop;
+		// if more than 1 set is to be loaded
+		// loop until 1 is reached
+		while (j > 1) {
+			// append self
+			text.append(text);
+			j /= 2;
+		}
+
+		/* Patterns
+		 * Small:	nec
+		 * Medium:	dolor
+		 * Large:	consectetur
+		 */
+		std::string patterns[] = { "nec","dolor","consectetur" };
+		for (size_t patternLoop = 0; patternLoop < 3; patternLoop++)
+		{
+			std::string pattern = patterns[patternLoop];
+			for (size_t algoLoop = 0; algoLoop < 100; algoLoop++)
+			{
+				std::cout << "Sample Size: " << fullLoop << " | Pattern: " << pattern << " | Iteration: " << algoLoop << " | Time taken: " << std::chrono::duration_cast<std::chrono::microseconds>(timerEnd - timerStart).count() << std::endl;
+				StartClock();
+				unsigned int textLength = int(text.length());
+				unsigned int patternLength = int(pattern.length());
+
+				std::vector<int> matchingIndexes;
+
+				// lookup table to store how many places the given position should skip
+				// ascii extended codes
+				int skip[256] = {};
+
+				// set all points to be max skip value
+				for (unsigned int i = 0; i < 256; ++i)
+					// Not in the pattern.
+					skip[i] = patternLength;
+
+				// for each of the characters in the pattern
+				for (unsigned int i = 0; i < patternLength; ++i)
+					// set that character to its length from the end of the pattern
+					skip[int(pattern[i])] = (patternLength - 1) - i;
+
+				// iterate through all the text, stopping patternLength positions from the end of the text
+				for (unsigned int i = 0; i < textLength - patternLength; ++i) {
+					// check if the last character in the pattern is a match
+					int pos = i + patternLength - 1;
+					int distance = skip[int(text[pos])];
+
+					// if no match, skip by distance to the next position
+					if (distance != 0) {
+						i += distance - 1;
+						continue;
+					}
+
+					// there is a match
+
+					unsigned int j;
+
+					// iterate through the text to check each character
+					for (j = 0; j < patternLength; j++) {
+						// if the current char in text being checked doesn't match that point in the pattern
+						int pos = i + j;
+						if (text[pos] != pattern[j]) break; // break and move on
+					}
+
+					// the word in text matches the pattern
+					if (j == patternLength)
+						// add the index of the word to matchingIndexes
+						matchingIndexes.push_back(i);
+				}
+				StopClock();
+				StoreTimeTaken(fullLoop, patternLoop, algoLoop);
+				WriteTimeTaken("Boyer-Moore");
+			}
+		}
+	}
+}
+
 int main()
 {
 	Clear(MessageType::Menu);
 	while (true) {
-		std::cout << "Select the algorithm to use:\n";
+		std::cout << "Select the algorithm to benchmark:\n";
 		std::cout << "1 - Rabin Karp\n";
 		std::cout << "2 - Boyer Moore\n";
 		std::cout << "3 - Quit application\n";
@@ -362,7 +482,7 @@ int main()
 		if (in == '1')
 			RabinKarp();
 		else if (in == '2')
-			BoyerMoore();
+			benchmarkBM();
 		else if (in == '3' || in == 'q' || in == 'Q')
 			return 0;
 		else {
