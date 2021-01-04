@@ -562,11 +562,21 @@ void benchmarkBM() {
 int main()
 {
 	Clear(MessageType::Menu);
+	bool benchmark = false;
 	while (true) {
-		std::cout << "Select the algorithm to benchmark:\n";
+		std::cout << "Select the algorithm to ";
+		std::cout << (benchmark) ? "benchmark" : "search with";
+		std::cout << ":\n";
 		std::cout << "1 - Rabin Karp\n";
+
 		std::cout << "2 - Boyer Moore\n";
-		std::cout << "3 - Quit application\n";
+
+		std::cout << "3 - Switch to ";
+		std::cout << ((benchmark) ? "search mode" : "benchmark mode");
+		std::cout << "\n";
+
+		std::cout << "4 - Quit\n";
+
 		std::cout << ">";
 		std::string input;
 		std::getline(std::cin, input);
@@ -574,16 +584,28 @@ int main()
 		char in = input[0];
 		bool clear = true;
 
-		if (in == '1')
-			benchmarkRK();
-		else if (in == '2')
-			benchmarkBM();
-		else if (in == '3' || in == 'q' || in == 'Q')
-			return 0;
-		else {
+		switch (in)
+		{
+		case '1':
+			(benchmark) ? benchmarkRK() : RabinKarp();
+			break;
+		case '2':
+			(benchmark) ? benchmarkBM() : BoyerMoore();
+			break;
+		case '3':
+			benchmark = !benchmark;
+			break;
+		case '4':
+		case 'q':
+		case 'Q':
+			(benchmark) ? benchmarkRK() : RabinKarp();
+			break;
+		default:
 			clear = false;
 			std::cout << "\nInvalid input: '" << input << "'\n";
 		}
-		if (clear) Clear(MessageType::Menu);
+
+		if (clear)
+			Clear(MessageType::Menu);
 	}
 }
