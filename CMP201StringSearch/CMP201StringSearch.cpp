@@ -139,7 +139,9 @@ void ShowTimeTaken() {
 std::string results = "sample size,pattern size, iteration, time taken\n";
 
 void StoreTimeTaken(int sampleSize, int patternLength, int sampleIteration) {
+	// sample size out
 	std::string output = std::to_string(sampleSize);
+	// pattern length out
 	switch (patternLength) {
 	case 0:
 		output.append(",3,");
@@ -151,8 +153,11 @@ void StoreTimeTaken(int sampleSize, int patternLength, int sampleIteration) {
 		output.append(",7,");
 		break;
 	}
+	// current iteration out
 	output.append(std::to_string(sampleIteration) + ",");
+	// time taken out
 	output.append(std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(timerEnd - timerStart).count()));
+	// store for writing
 	results.append(output + "\n");
 }
 void WriteTimeTaken(std::string algo) {
