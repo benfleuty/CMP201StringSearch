@@ -340,3 +340,7 @@ ASALocalRun/
 healthchecksdb
 
 search.*
+*.xls
+*.xlsx
+*.pptx
+*.csv
