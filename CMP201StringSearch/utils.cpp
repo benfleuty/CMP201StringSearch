@@ -24,7 +24,7 @@ void die(const string& msg) {
 void load_file(const string& filename, string& str) {
 	// To make this program less fussy about where exactly it's run
 	// from relative to the file, try looking in parent directories too.
-	std::string directory = "";
+	std::string directory = "samples/";
 	for (int i = 0; i < 6; i++) {
 		ifstream f(directory + filename, std::ios_base::binary);
 		if (!f.good()) {
