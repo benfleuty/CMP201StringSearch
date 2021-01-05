@@ -563,7 +563,7 @@ int main()
 	bool benchmark = false;
 	while (true) {
 		std::cout << "Select the algorithm to ";
-		std::cout << (benchmark) ? "benchmark" : "search with";
+		std::cout << ((benchmark) ? "benchmark" : "search with");
 		std::cout << ":\n";
 		std::cout << "1 - Rabin Karp\n";
 
