@@ -35,6 +35,10 @@ enum class MessageType {
 	BoyerMoore
 };
 
+/// <summary>
+/// Clears the console screen and outputs the relevant header
+/// </summary>
+/// <param name="message">The header header to print</param>
 void Clear(MessageType message)
 {
 #if defined _WIN32
@@ -70,21 +74,6 @@ void Clear(MessageType message)
 	}
 }
 
-std::string GetFileText(const std::string& fileToRead) {
-	// read text file
-	// file to read from
-	std::ifstream file(fileToRead);
-	// temp line storage
-	std::string line;
-	// output text storage
-	std::string output;
-	// loop through each line and append the line to the string
-	while (std::getline(file, line)) output.append(line);
-	//	while (file >> line) output.append(line);
-		// return the contents of the file
-	return output;
-}
-
 std::string GetText() {
 	//// get text file
 	std::string input;
@@ -92,7 +81,6 @@ std::string GetText() {
 		std::cout << "USE ASCII CHARACTERS ONLY\nYOU HAVE BEEN WARNED\nEnter y when the text you want to search is in a text file named \"search.txt\" in the same folder as this .exe\n";
 		std::getline(std::cin, input);
 	} while (input[0] != 'y');
-	//return GetFileText("search.txt");
 	std::cout << "\nReading file...\n";
 	load_file("search.txt", input);
 	return input;
@@ -148,6 +136,8 @@ void StoreTimeTaken(size_t sampleSize, size_t patternLength, size_t sampleIterat
 	case 2:
 		output.append(",7,");
 		break;
+	default:
+		exit(1);
 	}
 	// current iteration out
 	output.append(std::to_string(sampleIteration) + ",");
