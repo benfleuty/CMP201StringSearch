@@ -117,12 +117,12 @@ void StopClock() {
 void ShowTimeTaken() {
 	std::cout << "\nTime taken: ";
 	std::cout << std::chrono::duration_cast<std::chrono::microseconds>(timerEnd - timerStart).count();
-	std::cout << "ms\n";
+	std::cout << "us\n";
 }
 
 std::string results = "sample size,pattern size, iteration, time taken\n";
 
-void StoreTimeTaken(size_t sampleSize, size_t patternLength, size_t sampleIteration) {
+void StoreTimeTaken(long long sampleSize, long long patternLength, long long sampleIteration) {
 	// sample size out
 	std::string output = std::to_string(sampleSize);
 	// pattern length out
@@ -153,32 +153,32 @@ void WriteTimeTaken(std::string algo) {
 	f.close();
 }
 
-std::vector<size_t> Search_BoyerMoore(const std::string& text, const std::string& pattern) {
+std::vector<long long> Search_BoyerMoore(const std::string& text, const std::string& pattern) {
 	StartClock();
-	size_t textLength = text.length();
-	size_t patternLength = pattern.length();
+	long long textLength = text.length();
+	long long patternLength = pattern.length();
 
-	std::vector<size_t> matchingIndexes;
+	std::vector<long long> matchingIndexes;
 
 	// lookup table to store how many places the given position should skip
 	// ascii extended codes
-	size_t skip[256] = {};
+	long long skip[256] = {};
 
 	// set all points to be max skip value
-	for (size_t i = 0; i < 256; ++i)
+	for (long long i = 0; i < 256; ++i)
 		// Not in the pattern.
 		skip[i] = patternLength;
 
 	// for each of the characters in the pattern
-	for (size_t i = 0; i < patternLength; ++i)
+	for (long long i = 0; i < patternLength; ++i)
 		// set that character to its length from the end of the pattern
 		skip[pattern[i]] = (patternLength - 1) - i;
 
 	// iterate through all the text, stopping patternLength positions from the end of the text
-	for (size_t i = 0; i < textLength - patternLength; ++i) {
+	for (long long i = 0; i < textLength - patternLength; ++i) {
 		// check if the last character in the pattern is a match
-		size_t pos = i + patternLength - 1;
-		size_t distance = skip[text[pos]];
+		long long pos = i + patternLength - 1;
+		long long distance = skip[text[pos]];
 
 		// if no match, skip by distance to the next position
 		if (distance != 0) {
@@ -188,12 +188,12 @@ std::vector<size_t> Search_BoyerMoore(const std::string& text, const std::string
 
 		// there is a match
 
-		size_t j;
+		long long j;
 
 		// iterate through the text to check each character
 		for (j = 0; j < patternLength; j++) {
 			// if the current char in text being checked doesn't match that point in the pattern
-			size_t pos = i + j;
+			long long pos = i + j;
 			if (text[pos] != pattern[j]) break; // break and move on
 		}
 
@@ -216,7 +216,7 @@ bool ShowMatchingIndexes() {
 	return true;
 }
 
-void ShowMatches(std::vector<size_t> matchingIndexes, std::string& text, std::string& pattern) {
+void ShowMatches(std::vector<long long> matchingIndexes, std::string& text, std::string& pattern) {
 	ShowTimeTaken();
 	if (matchingIndexes.empty()) std::cout << pattern << " is not in the given text!\n";
 	else {
@@ -228,7 +228,7 @@ void ShowMatches(std::vector<size_t> matchingIndexes, std::string& text, std::st
 
 		std::string output = "";
 
-		for (size_t i = 0; i < matchingIndexes.size(); ++i)
+		for (long long i = 0; i < matchingIndexes.size(); ++i)
 			output.append(get_context(text, matchingIndexes[i], (i + 1)));
 
 		std::cout << output;
@@ -249,69 +249,68 @@ void BoyerMoore() {
 	Clear(MessageType::BoyerMoore);
 	std::cout << "Searching for: " << pattern;
 
-	std::vector<size_t> matchingIndexes = Search_BoyerMoore(text, pattern);
+	std::vector<long long> matchingIndexes = Search_BoyerMoore(text, pattern);
 	ShowMatches(matchingIndexes, text, pattern);
 
 	EndOfAlgorithm();
 }
 
-size_t GetHashValue(size_t patternLength, size_t hashVal, size_t alphabet, size_t prime) {
-	for (size_t i = 0; i < patternLength - 1; ++i)
+long long GetHashValue(long long patternLength, long long hashVal, long long alphabet, long long prime) {
+	for (long long i = 0; i < patternLength - 1; ++i)
 		hashVal = (hashVal * alphabet) % prime;
 	return hashVal;
 }
 
-size_t HashText(std::string& text, size_t& textHash, size_t patternLength, size_t alphabet, size_t prime) {
-	size_t val = textHash;
-	for (size_t i = 0; i < patternLength; i++)
-		val = (alphabet * val + text[i]) % prime;
-	return val;
+long long HashText(std::string text, long long textHash, long long patternLength, long long alphabet, long long prime) {
+	for (long long i = 0; i < patternLength; ++i)
+		textHash = (alphabet * textHash + text[i]) % prime;
+	return textHash;
 }
 
-size_t RollHash(std::string& text, size_t textHashVal, size_t hashVal, size_t i, size_t patternLength, size_t alphabet, size_t prime) {
+long long RollHash(std::string& text, long long textHashVal, long long hashVal, long long i, long long patternLength, long long alphabet, long long prime) {
 	/* Get hash value of the next position
 	 * Subtract hash value of text[i]
 	 * Add value of text[i + patlen]
 	 * Divide total by prime number
 	 */
 
-	size_t pos = i + patternLength;
+	long long pos = i + patternLength;
 	textHashVal = (alphabet * (textHashVal - text[i] * hashVal) + text[pos]) % prime;
 
 	// if textHash is below 0
 	// add prime number to text hash
 
 	if (textHashVal < 0)
-		textHashVal = textHashVal + prime;
+		textHashVal += prime;
 
 	return textHashVal;
 }
 
-std::vector<size_t> Search_RabinKarp(std::string& text, std::string& pattern) {
+std::vector<long long> Search_RabinKarp(std::string& text, std::string& pattern) {
 	StartClock();
 	// vector to hold returnable data
-	std::vector<size_t> matchingIndexes;
+	std::vector<long long> matchingIndexes;
 	// Get lengths
-	size_t patternLength = pattern.size();
-	size_t textLength = text.size();
+	long long patternLength = pattern.size();
+	long long textLength = text.size();
 
 	// Count of possible chars in input
-	const size_t alphabet = 256;
+	const long long alphabet = 256;
 	// Hash value of the pattern
-	size_t patternHashVal = 0;
+	long long patternHashVal = 0;
 	// Hash value of the text
-	size_t textHashVal = 0;
+	long long textHashVal = 0;
 	// prime number used to calculate hash
-	const size_t prime = 17;
+	const long long prime = 17;
 
 	// Calculate the hash value
 	// initialise
-	size_t hashVal = 1;
+	long long hashVal = 1;
 	// get hash value
 	hashVal = GetHashValue(patternLength, hashVal, alphabet, prime);
 
 	// Keep iterators in scope
-	size_t i, j;
+	long long i = 0, j = 0;
 
 	// Get hash values of the pattern and text
 	patternHashVal = HashText(pattern, patternHashVal, pattern.size(), alphabet, prime);
@@ -326,7 +325,7 @@ std::vector<size_t> Search_RabinKarp(std::string& text, std::string& pattern) {
 			for (j = 0; j < patternLength; j++) {
 				// check each char
 
-				size_t pos = i + j;
+				long long pos = i + j;
 				if (text[pos] != pattern[j])
 					// break if mismatch
 					break;
@@ -356,7 +355,7 @@ void RabinKarp() {
 	Clear(MessageType::RabinKarp);
 	std::cout << "Searching for: " << pattern;
 
-	std::vector<size_t> matchingIndexs = Search_RabinKarp(text, pattern);
+	std::vector<long long> matchingIndexs = Search_RabinKarp(text, pattern);
 
 	ShowMatches(matchingIndexs, text, pattern);
 
@@ -366,7 +365,7 @@ void RabinKarp() {
 void benchmarkRK() {
 	// iterate text sample sizes
 	// 2^0 to 2^13 sets of sample text
-	for (size_t fullLoop = 1; fullLoop <= 8192; fullLoop *= 2)
+	for (long long fullLoop = 1; fullLoop <= 8192; fullLoop *= 2)
 	{
 		// file to load
 		std::string file = "search.txt";
@@ -375,7 +374,7 @@ void benchmarkRK() {
 		// read once
 		load_file(file, text);
 		// countdown iterator for loop reading
-		size_t j = fullLoop;
+		long long j = fullLoop;
 		// if more than 1 set is to be loaded
 		// loop until 1 is reached
 		while (j > 1) {
@@ -390,35 +389,35 @@ void benchmarkRK() {
 		 * Large:	consectetur
 		 */
 		std::string patterns[] = { "nec","dolor","consectetur" };
-		for (size_t patternLoop = 0; patternLoop < 3; patternLoop++)
+		for (long long patternLoop = 0; patternLoop < 3; patternLoop++)
 		{
 			std::string pattern = patterns[patternLoop];
-			for (size_t algoLoop = 0; algoLoop < 100; algoLoop++) {
+			for (long long algoLoop = 0; algoLoop < 100; algoLoop++) {
 				std::cout << "Sample Size: " << fullLoop << " | Pattern: " << pattern << " | Iteration: " << algoLoop << " | Time taken: " << std::chrono::duration_cast<std::chrono::microseconds>(timerEnd - timerStart).count() << std::endl;
 				StartClock();
 				// vector to hold returnable data
-				std::vector<size_t> matchingIndexes;
+				std::vector<long long> matchingIndexes;
 				// Get lengths
-				size_t patternLength = pattern.size();
-				size_t textLength = text.size();
+				long long patternLength = pattern.size();
+				long long textLength = text.size();
 
 				// Count of possible chars in input
-				const size_t alphabet = 256;
+				const long long alphabet = 256;
 				// Hash value of the pattern
-				size_t patternHashVal = 0;
+				long long patternHashVal = 0;
 				// Hash value of the text
-				size_t textHashVal = 0;
+				long long textHashVal = 0;
 				// prime number used to calculate hash
-				const size_t prime = 17;
+				const long long prime = 17;
 
 				// Calculate the hash value
 				// initialise
-				size_t hashVal = 1;
+				long long hashVal = 1;
 				// get hash value
 				hashVal = GetHashValue(patternLength, hashVal, alphabet, prime);
 
 				// Keep iterators in scope
-				size_t i, j;
+				long long i, j;
 
 				// Get hash values of the pattern and text
 				patternHashVal = HashText(pattern, patternHashVal, pattern.size(), alphabet, prime);
@@ -433,7 +432,7 @@ void benchmarkRK() {
 						for (j = 0; j < patternLength; j++) {
 							// check each char
 
-							size_t pos = i + j;
+							long long pos = i + j;
 							if (text[pos] != pattern[j])
 								// break if mismatch
 								break;
@@ -461,7 +460,7 @@ void benchmarkRK() {
 void benchmarkBM() {
 	// iterate text sample sizes
 	// 2^0 to 2^13 sets of sample text
-	for (size_t fullLoop = 1; fullLoop <= 8192; fullLoop *= 2)
+	for (long long fullLoop = 1; fullLoop <= 8192; fullLoop *= 2)
 	{
 		// file to load
 		std::string file = "search.txt";
@@ -470,7 +469,7 @@ void benchmarkBM() {
 		// read once
 		load_file(file, text);
 		// countdown iterator for loop reading
-		size_t j = fullLoop;
+		long long j = fullLoop;
 		// if more than 1 set is to be loaded
 		// loop until 1 is reached
 		while (j > 1) {
@@ -485,37 +484,37 @@ void benchmarkBM() {
 		 * Large:	consectetur
 		 */
 		std::string patterns[] = { "nec","dolor","consectetur" };
-		for (size_t patternLoop = 0; patternLoop < 3; patternLoop++)
+		for (long long patternLoop = 0; patternLoop < 3; patternLoop++)
 		{
 			std::string pattern = patterns[patternLoop];
-			for (size_t algoLoop = 0; algoLoop < 100; algoLoop++)
+			for (long long algoLoop = 0; algoLoop < 100; algoLoop++)
 			{
 				std::cout << "Sample Size: " << fullLoop << " | Pattern: " << pattern << " | Iteration: " << algoLoop << " | Time taken: " << std::chrono::duration_cast<std::chrono::microseconds>(timerEnd - timerStart).count() << std::endl;
 				StartClock();
-				size_t textLength = text.length();
-				size_t patternLength = pattern.length();
+				long long textLength = text.length();
+				long long patternLength = pattern.length();
 
-				std::vector<size_t> matchingIndexes;
+				std::vector<long long> matchingIndexes;
 
 				// lookup table to store how many places the given position should skip
 				// ascii extended codes
-				size_t skip[256] = {};
+				long long skip[256] = {};
 
 				// set all points to be max skip value
-				for (size_t i = 0; i < 256; ++i)
+				for (long long i = 0; i < 256; ++i)
 					// Not in the pattern.
 					skip[i] = patternLength;
 
 				// for each of the characters in the pattern
-				for (size_t i = 0; i < patternLength; ++i)
+				for (long long i = 0; i < patternLength; ++i)
 					// set that character to its length from the end of the pattern
-					skip[size_t(pattern[i])] = (patternLength - 1) - i;
+					skip[long long(pattern[i])] = (patternLength - 1) - i;
 
 				// iterate through all the text, stopping patternLength positions from the end of the text
-				for (size_t i = 0; i < textLength - patternLength; ++i) {
+				for (long long i = 0; i < textLength - patternLength; ++i) {
 					// check if the last character in the pattern is a match
-					size_t pos = i + patternLength - 1;
-					size_t distance = skip[size_t(text[pos])];
+					long long pos = i + patternLength - 1;
+					long long distance = skip[long long(text[pos])];
 
 					// if no match, skip by distance to the next position
 					if (distance != 0) {
@@ -525,12 +524,12 @@ void benchmarkBM() {
 
 					// there is a match
 
-					size_t j;
+					long long j;
 
 					// iterate through the text to check each character
 					for (j = 0; j < patternLength; j++) {
 						// if the current char in text being checked doesn't match that point in the pattern
-						size_t pos = i + j;
+						long long pos = i + j;
 						if (text[pos] != pattern[j]) break; // break and move on
 					}
 
